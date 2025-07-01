@@ -6,7 +6,7 @@ module sccomp_tb ();
   reg  [ 4:0] reg_sel;
   wire [31:0] reg_data;
 
-  localparam stop_instr = 2;
+  localparam stop_instr = 10;
   localparam stop_pc = 4 * stop_instr;  // stop after 4 instructions
 
   // instantiation of sccomp    

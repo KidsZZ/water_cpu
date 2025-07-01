@@ -10,9 +10,10 @@ module SCPU (
     // memory write
     output [31:0] Addr_out,  // ALU output
     output [31:0] Data_out,  // data to data memory
+    output [ 2:0] dm_ctrl,   // dm control signal
+    output        CPU_MIO,   // CPU memory I/O control signal
+    input         INT        // interrupt signal
 
-    input  [ 4:0] reg_sel,  // register selection (for debug use)
-    output [31:0] reg_data  // selected register data (for debug use)
     //output [2:0] DMType
 );
   wire        RegWrite;  // control signal to register write
@@ -80,7 +81,8 @@ module SCPU (
       .NPCOp(NPCOp),
       .ALUSrc(ALUSrc),
       .GPRSel(GPRSel),
-      .WDSel(WDSel)
+      .WDSel(WDSel),
+      .DMType(dm_ctrl)
   );
   // instantiation of pc unit
   PC U_PC (
@@ -116,8 +118,6 @@ module SCPU (
       .WD  (WD),
       .RD1 (RD1),
       .RD2 (RD2)
-      //.reg_sel(reg_sel),
-      //.reg_data(reg_data)
   );
   // instantiation of alu unit
   alu U_alu (
