@@ -2,6 +2,7 @@
 module SCPU (
     input        clk,      // clock
     input        reset,    // reset
+    input MIO_ready;
     input [31:0] inst_in,  // instruction
     input [31:0] Data_in,  // data from data memory
 
@@ -22,7 +23,6 @@ module SCPU (
   wire [ 2:0] NPCOp;  // next PC operation
 
   wire [ 1:0] WDSel;  // (register) write data selection
-  wire [ 1:0] GPRSel;  // general purpose register selection
 
   wire        ALUSrc;  // ALU source for A
   wire        Zero;  // ALU ouput zero
@@ -80,7 +80,6 @@ module SCPU (
       .ALUOp(ALUOp),
       .NPCOp(NPCOp),
       .ALUSrc(ALUSrc),
-      .GPRSel(GPRSel),
       .WDSel(WDSel),
       .DMType(dm_ctrl)
   );

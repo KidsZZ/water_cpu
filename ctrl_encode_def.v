@@ -91,10 +91,15 @@
 `define I_TYPE 7'b0010011
 
 `define FUNCT3_ADDI	3'b000
+
 `define FUNCT3_SLTI	3'b010
+
 `define FUNCT3_SLTIU	3'b011
+
 `define FUNCT3_XORI	3'b100
+
 `define FUNCT3_ORI	3'b110
+
 `define FUNCT3_ANDI	3'b111
 
 `define FUNCT7_SLLI	7'b0000000
