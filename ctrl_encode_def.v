@@ -52,6 +52,8 @@
 `define dm_byte 3'b011
 `define dm_byte_unsigned 3'b100
 
+
+//------Instruction Type Definitions------//
 // R_type
 `define R_TYPE 7'b0110011
 
