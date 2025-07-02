@@ -25,8 +25,7 @@ RESULTS_DIR = results
 # File extensions and patterns
 VERILOG_SRCS = $(filter-out $(TOP_MODULE).v, $(wildcard *.v))
 TESTBENCH = $(TOP_MODULE).v
-MEMORY_FILE = Test_8_Instr.dat
-ASM_FILE = Test_8_Instr.asm
+MEMORY_FILE = Test_37_Instr2.dat
 
 # Output files
 EXECUTABLE = $(BUILD_DIR)/$(PROJECT_NAME)
@@ -35,6 +34,9 @@ RESULTS_FILE = $(RESULTS_DIR)/results.txt
 
 # Compiler flags
 IVERILOG_FLAGS = -g2012 -Wall
+
+# 支持通过 make run STOP_INSTR=10 方式传递 stop_instr 宏
+STOP_INSTR ?=
 VVP_FLAGS = 
 
 # Color codes for output
@@ -112,11 +114,15 @@ $(RESULTS_DIR):
 compile: $(EXECUTABLE)
 
 $(EXECUTABLE): $(VERILOG_SRCS) $(TESTBENCH) | $(BUILD_DIR)
-	@echo "$(BLUE)Compiling Verilog sources...$(NC)"
-	@echo "$(CYAN)Sources: $(VERILOG_SRCS)$(NC)"
-	@echo "$(CYAN)Testbench: $(TESTBENCH)$(NC)"
-	@$(SIMULATOR) $(IVERILOG_FLAGS) -o $@ $(VERILOG_SRCS) $(TESTBENCH)
-	@echo "$(GREEN)Compilation successful!$(NC)"
+	   @echo "$(BLUE)Compiling Verilog sources...$(NC)"
+	   @echo "$(CYAN)Sources: $(VERILOG_SRCS)$(NC)"
+	   @echo "$(CYAN)Testbench: $(TESTBENCH)$(NC)"
+	   if [ -z "$(STOP_INSTR)" ]; then \
+		 $(SIMULATOR) $(IVERILOG_FLAGS) -o $@ $(VERILOG_SRCS) $(TESTBENCH); \
+	   else \
+		 $(SIMULATOR) $(IVERILOG_FLAGS) -DSTOP_INSTR=$(STOP_INSTR) -o $@ $(VERILOG_SRCS) $(TESTBENCH); \
+	   fi
+	   @echo "$(GREEN)Compilation successful!$(NC)"
 
 # ============================================================================
 # Simulation Targets

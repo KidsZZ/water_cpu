@@ -6,7 +6,11 @@ module sccomp_tb ();
   reg  [ 4:0] reg_sel;
   wire [31:0] reg_data;
 
+`ifndef STOP_INSTR
   localparam stop_instr = 10;
+`else
+  localparam stop_instr = `STOP_INSTR;
+`endif
   localparam stop_pc = 4 * stop_instr;  // stop after 4 instructions
 
   // instantiation of sccomp    
@@ -22,9 +26,11 @@ module sccomp_tb ();
 
   initial begin
     // 添加VCD波形记录
+$dumpfile("dump.vcd");
+$dumpvars(0, sccomp_tb);
 
-
-    $readmemh("Test_8_Instr.dat", U_SCCOMP.U_IM.ROM);  // load instructions into instruction memory
+    $readmemh("asm&bin/I_mem.dat",
+              U_SCCOMP.U_IM.ROM);  // load instructions into instruction memory
     //    $monitor("PC = 0x%8X, instr = 0x%8X", U_SCCOMP.PC, U_SCCOMP.instr); // used for debug
     foutput = $fopen("results.txt");
     clk = 1;
@@ -41,46 +47,41 @@ module sccomp_tb ();
     #(50) clk = ~clk;
 
     if (clk == 1'b1) begin
-      if ((counter == 1000) || (U_SCCOMP.U_SCPU.PC_out === 32'hxxxxxxxx)) begin
+
+      if (U_SCCOMP.PC == stop_pc) begin
+        counter = counter + 1;
+        $fdisplay(foutput, "pc:\t %h", U_SCCOMP.PC);
+        $fdisplay(foutput, "instr:\t\t %h", U_SCCOMP.instr);
+        $fdisplay(foutput, "rf00-03:\t %h %h %h %h", 0, U_SCCOMP.U_SCPU.U_RF.rf[1],
+                  U_SCCOMP.U_SCPU.U_RF.rf[2], U_SCCOMP.U_SCPU.U_RF.rf[3]);
+        $fdisplay(foutput, "rf04-07:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[4],
+                  U_SCCOMP.U_SCPU.U_RF.rf[5], U_SCCOMP.U_SCPU.U_RF.rf[6],
+                  U_SCCOMP.U_SCPU.U_RF.rf[7]);
+        $fdisplay(foutput, "rf08-11:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[8],
+                  U_SCCOMP.U_SCPU.U_RF.rf[9], U_SCCOMP.U_SCPU.U_RF.rf[10],
+                  U_SCCOMP.U_SCPU.U_RF.rf[11]);
+        $fdisplay(foutput, "rf12-15:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[12],
+                  U_SCCOMP.U_SCPU.U_RF.rf[13], U_SCCOMP.U_SCPU.U_RF.rf[14],
+                  U_SCCOMP.U_SCPU.U_RF.rf[15]);
+        $fdisplay(foutput, "rf16-19:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[16],
+                  U_SCCOMP.U_SCPU.U_RF.rf[17], U_SCCOMP.U_SCPU.U_RF.rf[18],
+                  U_SCCOMP.U_SCPU.U_RF.rf[19]);
+        $fdisplay(foutput, "rf20-23:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[20],
+                  U_SCCOMP.U_SCPU.U_RF.rf[21], U_SCCOMP.U_SCPU.U_RF.rf[22],
+                  U_SCCOMP.U_SCPU.U_RF.rf[23]);
+        $fdisplay(foutput, "rf24-27:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[24],
+                  U_SCCOMP.U_SCPU.U_RF.rf[25], U_SCCOMP.U_SCPU.U_RF.rf[26],
+                  U_SCCOMP.U_SCPU.U_RF.rf[27]);
+        $fdisplay(foutput, "rf28-31:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[28],
+                  U_SCCOMP.U_SCPU.U_RF.rf[29], U_SCCOMP.U_SCPU.U_RF.rf[30],
+                  U_SCCOMP.U_SCPU.U_RF.rf[31]);
+        //$fdisplay(foutput, "hi lo:\t %h %h", U_SCCOMP.U_SCPU.U_RF.rf.hi, U_SCCOMP.U_SCPU.U_RF.rf.lo);
         $fclose(foutput);
-        $display("仿真结束 - 时间: %t, 计数器: %d, PC: %h", $time, counter, U_SCCOMP.PC);
         $finish;
       end else begin
-        if (U_SCCOMP.PC == stop_pc) begin
-          counter = counter + 1;
-          $fdisplay(foutput, "pc:\t %h", U_SCCOMP.PC);
-          $fdisplay(foutput, "instr:\t\t %h", U_SCCOMP.instr);
-          $fdisplay(foutput, "rf00-03:\t %h %h %h %h", 0, U_SCCOMP.U_SCPU.U_RF.rf[1],
-                    U_SCCOMP.U_SCPU.U_RF.rf[2], U_SCCOMP.U_SCPU.U_RF.rf[3]);
-          $fdisplay(foutput, "rf04-07:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[4],
-                    U_SCCOMP.U_SCPU.U_RF.rf[5], U_SCCOMP.U_SCPU.U_RF.rf[6],
-                    U_SCCOMP.U_SCPU.U_RF.rf[7]);
-          $fdisplay(foutput, "rf08-11:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[8],
-                    U_SCCOMP.U_SCPU.U_RF.rf[9], U_SCCOMP.U_SCPU.U_RF.rf[10],
-                    U_SCCOMP.U_SCPU.U_RF.rf[11]);
-          $fdisplay(foutput, "rf12-15:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[12],
-                    U_SCCOMP.U_SCPU.U_RF.rf[13], U_SCCOMP.U_SCPU.U_RF.rf[14],
-                    U_SCCOMP.U_SCPU.U_RF.rf[15]);
-          $fdisplay(foutput, "rf16-19:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[16],
-                    U_SCCOMP.U_SCPU.U_RF.rf[17], U_SCCOMP.U_SCPU.U_RF.rf[18],
-                    U_SCCOMP.U_SCPU.U_RF.rf[19]);
-          $fdisplay(foutput, "rf20-23:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[20],
-                    U_SCCOMP.U_SCPU.U_RF.rf[21], U_SCCOMP.U_SCPU.U_RF.rf[22],
-                    U_SCCOMP.U_SCPU.U_RF.rf[23]);
-          $fdisplay(foutput, "rf24-27:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[24],
-                    U_SCCOMP.U_SCPU.U_RF.rf[25], U_SCCOMP.U_SCPU.U_RF.rf[26],
-                    U_SCCOMP.U_SCPU.U_RF.rf[27]);
-          $fdisplay(foutput, "rf28-31:\t %h %h %h %h", U_SCCOMP.U_SCPU.U_RF.rf[28],
-                    U_SCCOMP.U_SCPU.U_RF.rf[29], U_SCCOMP.U_SCPU.U_RF.rf[30],
-                    U_SCCOMP.U_SCPU.U_RF.rf[31]);
-          //$fdisplay(foutput, "hi lo:\t %h %h", U_SCCOMP.U_SCPU.U_RF.rf.hi, U_SCCOMP.U_SCPU.U_RF.rf.lo);
-          $fclose(foutput);
-          $finish;
-        end else begin
-          counter = counter + 1;
-          //          $display("pc: %h", U_SCCOMP.U_SCPU.PC);
-          //          $display("instr: %h", U_SCCOMP.U_SCPU.instr);
-        end
+        counter = counter + 1;
+        //          $display("pc: %h", U_SCCOMP.U_SCPU.PC);
+        //          $display("instr: %h", U_SCCOMP.U_SCPU.instr);
       end
     end
   end  //end always
