@@ -2,7 +2,7 @@
 module SCPU (
     input        clk,      // clock
     input        reset,    // reset
-    input MIO_ready;
+    input MIO_ready,
     input [31:0] inst_in,  // instruction
     input [31:0] Data_in,  // data from data memory
 
