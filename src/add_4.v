@@ -5,4 +5,4 @@ module add_4(
 
 assign pc_4 = pc + 4;
 
-endmodule;
+endmodule

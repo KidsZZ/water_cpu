@@ -18,12 +18,13 @@ GTKWAVE = gtkwave
 
 # Directories
 SRC_DIR = .
+SRC_SUBDIR = src
 TEST_DIR = .
 BUILD_DIR = build
 RESULTS_DIR = results
 
 # File extensions and patterns
-VERILOG_SRCS = $(filter-out $(TOP_MODULE).v, $(wildcard *.v))
+VERILOG_SRCS = $(filter-out $(TOP_MODULE).v, $(wildcard *.v) $(wildcard $(SRC_SUBDIR)/*.v))
 TESTBENCH = $(TOP_MODULE).v
 MEMORY_FILE = Test_37_Instr2.dat
 
@@ -33,7 +34,7 @@ VCD_FILE = $(BUILD_DIR)/$(PROJECT_NAME).vcd
 RESULTS_FILE = $(RESULTS_DIR)/results.txt
 
 # Compiler flags
-IVERILOG_FLAGS = -g2012 -Wall
+IVERILOG_FLAGS = -g2012 -Wall -I./$(SRC_SUBDIR)
 
 # 支持通过 make run STOP_INSTR=10 方式传递 stop_instr 宏
 STOP_INSTR ?=

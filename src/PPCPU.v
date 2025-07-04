@@ -1,7 +1,6 @@
-`include "ctrl_encode_def.v"
-module PPCPU (
+module SCPU (
     input        clk,        // clock
-    input        reset,      // reset
+    input        rst,       // reset
     input        MIO_ready,
     input [31:0] inst_in,    // instruction
     input [31:0] Data_in,    // data from data memory
@@ -109,19 +108,21 @@ module PPCPU (
       .flush  (flush)
   );
 
-  PC u_PC (
+  pc PC (
+      .rst(rst),
       .clk(clk),
-      .rst(reset),
       .pause(pause),
       .flush(flush),
-      .NPC(if_nextPc),
-      .PC(if_pc)
+      .next_pc(if_nextPc),
+
+      .pc(if_pc)
   );
 
   add_4 ADD_4 (
       .pc  (if_pc),
       .pc_4(if_pc4)
   );
+  
   assign PC_out   = if_pc;
   assign if_instr = inst_in;
 
@@ -252,13 +253,154 @@ module PPCPU (
       .out(ex_true_rs1Data)
   );
 
-  mux_3 MUX_FORWARD_B(
-    .signal(forwardB),
-    .a(ex_rs2Data),
-    .b(me_outAlu),
-    .c(wb_rdData),
+  mux_3 MUX_FORWARD_B (
+      .signal(forwardB),
+      .a(ex_rs2Data),
+      .b(me_outAlu),
+      .c(wb_rdData),
 
-    .out(ex_true_rs2Data)
-);
+      .out(ex_true_rs2Data)
+  );
 
+  mux_2 MUX_EX_A (
+      .signal(ex_rs1Data_EX_PC),
+      .a(ex_true_rs1Data),
+      .b(ex_pc),
+
+      .out(ex_inAluA)
+  );
+
+  mux_3 MUX_EX_B (
+      .signal(ex_rs2Data_EX_imm32_4),
+      .a(ex_true_rs2Data),
+      .b(ex_imm32),
+      .c(32'd4),
+
+      .out(ex_inAluB)
+  );
+
+  add_pc ADD_PC (
+      .pc(ex_pc),
+      .imm32(ex_imm32),
+      .rs1Data(ex_true_rs1Data),
+
+      .pcImm (ex_pcImm),
+      .rs1Imm(ex_rs1Imm)
+  );
+
+  alu ALU (
+      .aluc(ex_aluc),
+      .a(ex_inAluA),
+      .b(ex_inAluB),
+
+      .out(ex_outAlu),
+      .condition_branch(ex_conditionBranch)
+  );
+
+  forward_unit FORWARD_UNIT (
+      .me_writeReg(me_writeReg),
+      .me_rd(me_rd),
+      .wb_rd(wb_rd),
+      .wb_writeReg(wb_writeReg),
+      .ex_rs1(ex_rs1),
+      .ex_rs2(ex_rs2),
+      .me_rs2(me_rs2),
+
+      .ex_forwardA(forwardA),
+      .ex_forwardB(forwardB),
+      .me_forwardC(forwardC)
+  );
+
+  // ********************************
+  //         ex_me 寄存器
+  // ********************************
+  reg_ex_me reg_EX_ME (
+      .clk  (clk),
+      .rst  (rst),
+      .flush(flush),
+
+      .ex_aluOut_WB_memOut(ex_aluOut_WB_memOut),
+      .ex_writeReg(ex_writeReg),
+      .ex_writeMem(ex_writeMem),
+      .ex_readMem(ex_readMem),
+      .ex_pcImm_NEXTPC_rs1Imm(ex_pcImm_NEXTPC_rs1Imm),
+      .ex_conditionBranch(ex_conditionBranch),
+      .ex_pcImm(ex_pcImm),
+      .ex_rs1Imm(ex_rs1Imm),
+      .ex_outAlu(ex_outAlu),
+      .ex_rs2Data(ex_true_rs2Data),
+      .ex_rd(ex_rd),
+      .ex_rs2(ex_rs2),
+
+      .me_aluOut_WB_memOut(me_aluOut_WB_memOut),
+      .me_writeReg(me_writeReg),
+      .me_writeMem(me_writeMem),
+      .me_readMem(me_readMem),
+      .me_pcImm_NEXTPC_rs1Imm(me_pcImm_NEXTPC_rs1Imm),
+      .me_conditionBranch(me_conditionBranch),
+      .me_pcImm(me_pcImm),
+      .me_rs1Imm(me_rs1Imm),
+      .me_outAlu(me_outAlu),
+      .me_rs2Data(me_rs2Data),
+      .me_rd(me_rd),
+      .me_rs2(me_rs2)
+  );
+
+  // ********************************
+  //         me 阶段
+  // ********************************
+
+  // 为了解决load后紧跟store  
+  mux_2 MUX_WB_DATA (
+      .signal(forwardC),
+      .a(me_rs2Data),
+      .b(wb_rdData),
+
+      .out(me_true_rs2Data)
+  );
+
+  assign Addr_out  = me_outAlu;
+  assign Data_out  = me_true_rs2Data;
+  assign me_outMem = Data_in;
+
+  mem_ctrl_change MEM_CTRL_CHANGE (
+      .readMem(me_readMem),
+      .writeMem(me_writeMem),
+      .mem_w(mem_w),
+      .dm_ctrl(dm_ctrl)
+  );
+
+
+
+  // ********************************
+  //         me_wb 寄存器
+  // ********************************
+  reg_me_wb reg_ME_WB (
+
+      .clk(clk),
+      .rst(rst),
+      .me_aluOut_WB_memOut(me_aluOut_WB_memOut),
+      .me_writeReg(me_writeReg),
+      .me_outMem(me_outMem),
+      .me_outAlu(me_outAlu),
+      .me_rd(me_rd),
+
+      .wb_aluOut_WB_memOut(wb_aluOut_WB_memOut),
+      .wb_writeReg(wb_writeReg),
+      .wb_outMem(wb_outMem),
+      .wb_outAlu(wb_outAlu),
+      .wb_rd(wb_rd)
+  );
+
+  // ********************************
+  //         wb 阶段
+  // ********************************
+
+  mux_2 MUX_WB (
+      .signal(wb_aluOut_WB_memOut),
+      .a(wb_outAlu),
+      .b(wb_outMem),
+
+      .out(wb_rdData)
+  );
 endmodule

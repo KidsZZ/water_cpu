@@ -18,8 +18,8 @@ module reg_if_id (
       // 空操作
       // 阻止寄存器值改变
     end else begin
-      id_pc <= if_pc;
-      id_instr <= if_instr;
+      id_pc = if_pc;
+      id_instr = if_instr;
     end
   end
 

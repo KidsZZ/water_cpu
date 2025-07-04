@@ -15,7 +15,7 @@ module sccomp (
   // instantiation of single-cycle CPU   
   SCPU U_SCPU (
       .clk     (clk),             // input:  cpu clock
-      .reset   (rst),             // input:  reset
+      .rst   (rst),             // input:  reset
       .inst_in (instr),           // input:  instruction
       .Data_in (dm_dout),         // input:  data to cpu  
       .mem_w   (MemWrite),        // output: memory write signal

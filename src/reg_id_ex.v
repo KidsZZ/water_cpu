@@ -1,4 +1,4 @@
-module id_ex(
+module reg_id_ex(
     input clk, rst, pause, flush,
 
     input [4: 0] id_aluc,
@@ -50,21 +50,21 @@ always @(posedge clk) begin
         ex_rs1 = 5'd0;
         ex_rs2 = 5'd0;
     end else begin
-        ex_aluc <= id_aluc;
-        ex_aluOut_WB_memOut <= id_aluOut_WB_memOut;
-        ex_rs1Data_EX_PC <= id_rs1Data_EX_PC;
-        ex_rs2Data_EX_imm32_4 <= id_rs2Data_EX_imm32_4;
-        ex_writeReg <= id_writeReg;
-        ex_writeMem <= id_writeMem;
-        ex_readMem <= id_readMem;
-        ex_pcImm_NEXTPC_rs1Imm <= id_pcImm_NEXTPC_rs1Imm;
-        ex_pc <= id_pc;
-        ex_rs1Data <= id_rs1Data;
-        ex_rs2Data <= id_rs2Data;
-        ex_imm32 <= id_imm32;
-        ex_rd <= id_rd;
-        ex_rs1 <= id_rs1;
-        ex_rs2 <= id_rs2;
+        ex_aluc = id_aluc;
+        ex_aluOut_WB_memOut = id_aluOut_WB_memOut;
+        ex_rs1Data_EX_PC = id_rs1Data_EX_PC;
+        ex_rs2Data_EX_imm32_4 = id_rs2Data_EX_imm32_4;
+        ex_writeReg = id_writeReg;
+        ex_writeMem = id_writeMem;
+        ex_readMem = id_readMem;
+        ex_pcImm_NEXTPC_rs1Imm = id_pcImm_NEXTPC_rs1Imm;
+        ex_pc = id_pc;
+        ex_rs1Data = id_rs1Data;
+        ex_rs2Data = id_rs2Data;
+        ex_imm32 = id_imm32;
+        ex_rd = id_rd;
+        ex_rs1 = id_rs1;
+        ex_rs2 = id_rs2;
     end
     
 end
