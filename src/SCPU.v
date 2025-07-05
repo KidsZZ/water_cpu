@@ -21,14 +21,6 @@ module SCPU (
 );
 
   // Wire declarations
-  wire [63:0] IF_ID_in;
-  wire [63:0] IF_ID_out;
-  wire [160:0] ID_EX_in;
-  wire [160:0] ID_EX_out;
-  wire [110:0] EX_MEM_in;
-  wire [110:0] EX_MEM_out;
-  wire [103:0] MEM_WB_in;
-  wire [103:0] MEM_WB_out;
   wire IF_ID_write_enable;
   wire IF_ID_flush;
   wire ID_EX_write_enable;
@@ -111,10 +103,8 @@ module SCPU (
   assign ID_EX_write_enable = 1'b1;
   assign EX_MEM_write_enable = 1'b1;
   assign MEM_WB_write_enable = 1'b1;
-  // IF_ID
-  assign IF_ID_in = {PC_out, inst_in};
-  assign IF_ID_PC = IF_ID_out[63:32];
-  assign IF_ID_inst = IF_ID_out[31:0];
+  
+  // Instruction field assignments from IF_ID stage
   assign Op = IF_ID_inst[6:0];
   assign Funct3 = IF_ID_inst[14:12];
   assign Funct7 = IF_ID_inst[31:25];
@@ -128,68 +118,19 @@ module SCPU (
   assign uimm = IF_ID_inst[31:12];
   assign jimm = {IF_ID_inst[31], IF_ID_inst[19:12], IF_ID_inst[20], IF_ID_inst[30:21]};
 
-  // ID_EX
-  assign ID_EX_in = {
-    RegWrite,
-    MemWrite,
-    ALUOp,
-    ALUSrc,
-    GPRSel,
-    WDSel,
-    DMType_ID,
-    NPCOp,
-    RD1,
-    RD2,
-    immout,
-    rs1,
-    rs2,
-    rd,
-    IF_ID_PC
-  };
-  assign RegWrite_EX = ID_EX_out[160];
-  assign MemWrite_EX = ID_EX_out[159];
-  assign ALUOp_EX = ID_EX_out[158:154];
-  assign ALUSrc_EX = ID_EX_out[153];
-  assign GPRSel_EX = ID_EX_out[152:151];
-  assign WDSel_EX = ID_EX_out[150:149];
-  assign DMType_EX = ID_EX_out[148:146];
-  assign NPCOp_EX = {ID_EX_out[145:144], ID_EX_out[143] & Zero_EX};
-  assign RD1_EX = ID_EX_out[142:111];
-  assign RD2_EX = ID_EX_out[110:79];
-  assign immout_EX = ID_EX_out[78:47];
-  assign rs1_EX = ID_EX_out[46:42];
-  assign rs2_EX = ID_EX_out[41:37];
-  assign rd_EX = ID_EX_out[36:32];
-  assign PC_EX = ID_EX_out[31:0];
-  // EX_MEM
-  assign EX_MEM_in = {
-    PC_EX, RegWrite_EX, MemWrite_EX, WDSel_EX, GPRSel_EX, DMType_EX, aluout_EX, RD2_forwarded, rd_EX
-  };
-  assign PC_MEM = EX_MEM_out[109:78];
-  assign RegWrite_MEM = EX_MEM_out[77];
-  assign MemWrite_MEM = EX_MEM_out[76];
-  assign WDSel_MEM = EX_MEM_out[75:74];
-  assign GPRSel_MEM = EX_MEM_out[73:72];
-  assign DMType_MEM = EX_MEM_out[71:69];
-  assign aluout_MEM = EX_MEM_out[68:37];
-  assign RD2_MEM = EX_MEM_out[36:5];
-  assign rd_MEM = EX_MEM_out[4:0];
+  // Output assignments
   assign Addr_out = aluout_MEM;
   assign Data_out = RD2_MEM;
   assign mem_w = MemWrite_MEM;
   assign DMType = DMType_MEM;
-  // MEM_WB
-  assign MEM_WB_in = {PC_MEM, RegWrite_MEM, WDSel_MEM, Data_in, aluout_MEM, rd_MEM};
-  assign PC_WB = MEM_WB_out[103:72];
-  assign RegWrite_WB = MEM_WB_out[71];
-  assign WDSel_WB = MEM_WB_out[70:69];
-  assign Data_in_WB = MEM_WB_out[68:37];
-  assign aluout_WB = MEM_WB_out[36:5];
-  assign rd_WB = MEM_WB_out[4:0];
+  
+  // Control signal assignments
   assign ID_EX_MemRead = WDSel_EX[0];
   assign Branch_or_Jump = (NPCOp_EX != 3'b000);
   assign ID_EX_flush = stall_signal | Branch_or_Jump;
   assign IF_ID_write_enable = ~stall_signal;
+  
+  // Forwarding assignments
   assign RD1_forwarded = (ForwardA == 2'b00) ? RD1_EX :
                          (ForwardA == 2'b01) ? RF_WD :
                          (ForwardA == 2'b10) ? aluout_MEM : 32'b0;
@@ -200,40 +141,298 @@ module SCPU (
 
 
 
-  GRE_array #(200) IF_ID (
+  // IF_ID Pipeline Registers using GRE_array
+  GRE_array #(32) IF_ID_PC_reg (
       .Clk(clk),
       .Rst(rst),
       .write_enable(IF_ID_write_enable),
       .flush(IF_ID_flush),
-      .in(IF_ID_in),
-      .out(IF_ID_out)
+      .in(PC_out),
+      .out(IF_ID_PC)
   );
 
-  GRE_array #(200) ID_EX (
+  GRE_array #(32) IF_ID_inst_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(IF_ID_write_enable),
+      .flush(IF_ID_flush),
+      .in(inst_in),
+      .out(IF_ID_inst)
+  );
+
+  // ID_EX Pipeline Registers using GRE_array
+  GRE_array #(1) ID_EX_RegWrite_reg (
       .Clk(clk),
       .Rst(rst),
       .write_enable(ID_EX_write_enable),
       .flush(ID_EX_flush),
-      .in(ID_EX_in),
-      .out(ID_EX_out)
+      .in(RegWrite),
+      .out(RegWrite_EX)
   );
 
-  GRE_array #(200) EX_MEM (
+  GRE_array #(1) ID_EX_MemWrite_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(MemWrite),
+      .out(MemWrite_EX)
+  );
+
+  GRE_array #(5) ID_EX_ALUOp_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(ALUOp),
+      .out(ALUOp_EX)
+  );
+
+  GRE_array #(1) ID_EX_ALUSrc_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(ALUSrc),
+      .out(ALUSrc_EX)
+  );
+
+  GRE_array #(2) ID_EX_GPRSel_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(GPRSel),
+      .out(GPRSel_EX)
+  );
+
+  GRE_array #(2) ID_EX_WDSel_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(WDSel),
+      .out(WDSel_EX)
+  );
+
+  GRE_array #(3) ID_EX_DMType_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(DMType_ID),
+      .out(DMType_EX)
+  );
+
+  wire [2:0] NPCOp_EX_temp;
+  GRE_array #(3) ID_EX_NPCOp_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(NPCOp),
+      .out(NPCOp_EX_temp)
+  );
+  assign NPCOp_EX = {NPCOp_EX_temp[2:1], NPCOp_EX_temp[0] & Zero_EX};
+
+  GRE_array #(32) ID_EX_RD1_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(RD1),
+      .out(RD1_EX)
+  );
+
+  GRE_array #(32) ID_EX_RD2_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(RD2),
+      .out(RD2_EX)
+  );
+
+  GRE_array #(32) ID_EX_immout_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(immout),
+      .out(immout_EX)
+  );
+
+  GRE_array #(5) ID_EX_rs1_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(rs1),
+      .out(rs1_EX)
+  );
+
+  GRE_array #(5) ID_EX_rs2_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(rs2),
+      .out(rs2_EX)
+  );
+
+  GRE_array #(5) ID_EX_rd_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(rd),
+      .out(rd_EX)
+  );
+
+  GRE_array #(32) ID_EX_PC_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(IF_ID_PC),
+      .out(PC_EX)
+  );
+
+  // EX_MEM Pipeline Registers using GRE_array
+  GRE_array #(32) EX_MEM_PC_reg (
       .Clk(clk),
       .Rst(rst),
       .write_enable(EX_MEM_write_enable),
       .flush(1'b0),
-      .in(EX_MEM_in),
-      .out(EX_MEM_out)
+      .in(PC_EX),
+      .out(PC_MEM)
   );
 
-  GRE_array #(200) MEM_WB (
+  GRE_array #(1) EX_MEM_RegWrite_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(EX_MEM_write_enable),
+      .flush(1'b0),
+      .in(RegWrite_EX),
+      .out(RegWrite_MEM)
+  );
+
+  GRE_array #(1) EX_MEM_MemWrite_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(EX_MEM_write_enable),
+      .flush(1'b0),
+      .in(MemWrite_EX),
+      .out(MemWrite_MEM)
+  );
+
+  GRE_array #(2) EX_MEM_WDSel_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(EX_MEM_write_enable),
+      .flush(1'b0),
+      .in(WDSel_EX),
+      .out(WDSel_MEM)
+  );
+
+  GRE_array #(2) EX_MEM_GPRSel_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(EX_MEM_write_enable),
+      .flush(1'b0),
+      .in(GPRSel_EX),
+      .out(GPRSel_MEM)
+  );
+
+  GRE_array #(3) EX_MEM_DMType_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(EX_MEM_write_enable),
+      .flush(1'b0),
+      .in(DMType_EX),
+      .out(DMType_MEM)
+  );
+
+  GRE_array #(32) EX_MEM_aluout_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(EX_MEM_write_enable),
+      .flush(1'b0),
+      .in(aluout_EX),
+      .out(aluout_MEM)
+  );
+
+  GRE_array #(32) EX_MEM_RD2_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(EX_MEM_write_enable),
+      .flush(1'b0),
+      .in(RD2_forwarded),
+      .out(RD2_MEM)
+  );
+
+  GRE_array #(5) EX_MEM_rd_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(EX_MEM_write_enable),
+      .flush(1'b0),
+      .in(rd_EX),
+      .out(rd_MEM)
+  );
+
+  // MEM_WB Pipeline Registers using GRE_array
+  GRE_array #(32) MEM_WB_PC_reg (
       .Clk(clk),
       .Rst(rst),
       .write_enable(MEM_WB_write_enable),
       .flush(1'b0),
-      .in(MEM_WB_in),
-      .out(MEM_WB_out)
+      .in(PC_MEM),
+      .out(PC_WB)
+  );
+
+  GRE_array #(1) MEM_WB_RegWrite_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(MEM_WB_write_enable),
+      .flush(1'b0),
+      .in(RegWrite_MEM),
+      .out(RegWrite_WB)
+  );
+
+  GRE_array #(2) MEM_WB_WDSel_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(MEM_WB_write_enable),
+      .flush(1'b0),
+      .in(WDSel_MEM),
+      .out(WDSel_WB)
+  );
+
+  GRE_array #(32) MEM_WB_Data_in_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(MEM_WB_write_enable),
+      .flush(1'b0),
+      .in(Data_in),
+      .out(Data_in_WB)
+  );
+
+  GRE_array #(32) MEM_WB_aluout_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(MEM_WB_write_enable),
+      .flush(1'b0),
+      .in(aluout_MEM),
+      .out(aluout_WB)
+  );
+
+  GRE_array #(5) MEM_WB_rd_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(MEM_WB_write_enable),
+      .flush(1'b0),
+      .in(rd_MEM),
+      .out(rd_WB)
   );
 
   PC u_PC (
