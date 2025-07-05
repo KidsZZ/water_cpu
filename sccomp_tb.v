@@ -7,7 +7,7 @@ module sccomp_tb ();
   wire [31:0] reg_data;
 
 `ifndef STOP_INSTR
-  localparam stop_instr = 30;
+  localparam stop_instr = 200;
 `else
   localparam stop_instr = `STOP_INSTR;
 `endif

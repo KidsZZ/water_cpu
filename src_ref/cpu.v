@@ -1,21 +1,21 @@
 `timescale 1ns / 1ps
 
-module PPCPU (
-    input        clk,        // clock
-    input        rst,       // reset
-    input        MIO_ready,
-    input [31:0] inst_in,    // instruction
-    input [31:0] Data_in,    // data from data memory
-
-    output        mem_w,     // output: memory write signal
-    output [31:0] PC_out,    // PC address
-    // memory write
-    output [31:0] Addr_out,  // ALU output
-    output [31:0] Data_out,  // data to data memory
-    output [ 2:0] dm_ctrl,   // dm control signal
-    output        CPU_MIO,   // CPU memory I/O control signal
-    input         INT        // interrupt signal
+module SCPU (
+   input         clk,        // clock
+   input         rst,      // reset
+   input  [31:0] inst_in,    // instruction
+   input  [31:0] Data_in,    // data from data memory
+   input         MIO_ready,
+   output        mem_w,      // output: memory write signal
+   output [31:0] PC_out,     // PC address
+   // memory write
+   output [31:0] Addr_out,   // ALU output
+   output [31:0] Data_out,   // data to data memory
+   output        CPU_MIO,
+   output [2:0] DMType,
+   input         INT
 );
+
 wire pause; // 数据冒险停顿
 wire flush; // 控制冒险刷新
 wire [1: 0] forwardA, forwardB; // 数据冒险旁路
@@ -43,8 +43,8 @@ wire id_aluOut_WB_memOut; // 二路选择器
 wire id_rs1Data_EX_PC; // 二路选择器
 wire[1: 0] id_rs2Data_EX_imm32_4; // 三路选择器
 wire id_writeReg; // 寄存器写信号
-wire [1: 0] id_writeMem; // 写内存信号
-wire [2: 0] id_readMem; // 读内存信号
+wire [2: 0] id_DMType; // 内存数据类型
+wire id_mem_w; // 内存写信号
 wire [2: 0] id_extOP; // 立即数产生信号
 wire [1: 0] id_pcImm_NEXTPC_rs1Imm; // 无条件跳转
 
@@ -54,8 +54,8 @@ wire ex_aluOut_WB_memOut; // 二路选择器
 wire ex_rs1Data_EX_PC; // 二路选择器
 wire[1: 0] ex_rs2Data_EX_imm32_4; // 三路选择器
 wire ex_writeReg; // 寄存器写信号
-wire [1: 0] ex_writeMem; // 写内存信号
-wire [2: 0] ex_readMem; // 读内存信号
+wire [2: 0] ex_DMType; // 内存数据类型
+wire ex_mem_w; // 内存写信号
 wire[1: 0] ex_pcImm_NEXTPC_rs1Imm; // 无条件跳转
 wire [31: 0] ex_pc; 
 wire [31: 0] ex_rs1Data, ex_rs2Data;
@@ -70,8 +70,8 @@ wire ex_conditionBranch; // 条件分支
 // me阶段
 wire me_aluOut_WB_memOut; // 二路选择器
 wire me_writeReg; // 寄存器写信号
-wire [1: 0] me_writeMem; // 写内存信号
-wire [2: 0] me_readMem; // 读内存信号
+wire [2: 0] me_DMType; // 内存数据类型
+wire me_mem_w; // 内存写信号
 wire[1: 0] me_pcImm_NEXTPC_rs1Imm; // 无条件跳转
 wire me_conditionBranch; // 条件分支
 wire [31: 0] me_pcImm, me_rs1Imm; // 分支
@@ -159,8 +159,8 @@ controller CONTROLLER(
     .rs1Data_EX_PC(id_rs1Data_EX_PC),
     .rs2Data_EX_imm32_4(id_rs2Data_EX_imm32_4),
     .write_reg(id_writeReg),
-    .write_mem(id_writeMem),
-    .read_mem(id_readMem),
+    .DMType(id_DMType),
+    .mem_w(id_mem_w),
     .extOP(id_extOP),
     .pcImm_NEXTPC_rs1Imm(id_pcImm_NEXTPC_rs1Imm)
 );
@@ -186,7 +186,7 @@ imm IMM(
 );
 
 hazard_detection_unit HAZARD_DETECTION_UNIT(
-    .ex_readMem(ex_readMem),
+    .ex_aluOut_WB_memOut(ex_aluOut_WB_memOut),
     .ex_rd(ex_rd),
     .id_rs1(id_rs1),
     .id_rs2(id_rs2),
@@ -208,8 +208,8 @@ id_ex ID_EX(
     .id_rs1Data_EX_PC(id_rs1Data_EX_PC),
     .id_rs2Data_EX_imm32_4(id_rs2Data_EX_imm32_4),
     .id_writeReg(id_writeReg),
-    .id_writeMem(id_writeMem),
-    .id_readMem(id_readMem),
+    .id_DMType(id_DMType),
+    .id_mem_w(id_mem_w),
     .id_pcImm_NEXTPC_rs1Imm(id_pcImm_NEXTPC_rs1Imm),
     .id_pc(id_pc),
     .id_rs1Data(id_rs1Data),
@@ -224,8 +224,8 @@ id_ex ID_EX(
     .ex_rs1Data_EX_PC(ex_rs1Data_EX_PC),
     .ex_rs2Data_EX_imm32_4(ex_rs2Data_EX_imm32_4),
     .ex_writeReg(ex_writeReg),
-    .ex_writeMem(ex_writeMem),
-    .ex_readMem(ex_readMem),
+    .ex_DMType(ex_DMType),
+    .ex_mem_w(ex_mem_w),
     .ex_pcImm_NEXTPC_rs1Imm(ex_pcImm_NEXTPC_rs1Imm),
     .ex_pc(ex_pc),
     .ex_rs1Data(ex_rs1Data),
@@ -313,8 +313,8 @@ ex_me EX_ME(
 
     .ex_aluOut_WB_memOut(ex_aluOut_WB_memOut),
     .ex_writeReg(ex_writeReg),
-    .ex_writeMem(ex_writeMem),
-    .ex_readMem(ex_readMem),
+    .ex_DMType(ex_DMType),
+    .ex_mem_w(ex_mem_w),
     .ex_pcImm_NEXTPC_rs1Imm(ex_pcImm_NEXTPC_rs1Imm),
     .ex_conditionBranch(ex_conditionBranch),
     .ex_pcImm(ex_pcImm),
@@ -326,8 +326,8 @@ ex_me EX_ME(
 
     .me_aluOut_WB_memOut(me_aluOut_WB_memOut),
     .me_writeReg(me_writeReg),
-    .me_writeMem(me_writeMem),
-    .me_readMem(me_readMem),
+    .me_DMType(me_DMType),
+    .me_mem_w(me_mem_w),
     .me_pcImm_NEXTPC_rs1Imm(me_pcImm_NEXTPC_rs1Imm),
     .me_conditionBranch(me_conditionBranch),
     .me_pcImm(me_pcImm),
@@ -347,15 +347,10 @@ mux_2 MUX_WB_DATA(
 );
 
 assign Addr_out = me_outAlu; // ALU输出作为地址
-assign Data_out = me_true_rs2Data; // 数据存储器写入数据
-
-mem_ctrl_change MEM_CTRL_CHANGE(
-    .writeMem(me_writeMem),
-    .readMem(me_readMem),
-
-    .mem_w(mem_w),
-    .dm_ctrl(dm_ctrl)
-);
+assign Data_out = me_true_rs2Data; // 数据存储到内存
+assign mem_w = me_mem_w; // 内存写信号
+assign DMType = me_DMType; // 内存数据类型
+assign me_outMem = Data_in; // 从内存读取的数据
 
 // ********************************
 //         me_wb 寄存器

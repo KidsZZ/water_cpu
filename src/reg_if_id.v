@@ -10,16 +10,17 @@ module reg_if_id (
     output reg [31:0] id_instr
 );
 
-  always @(posedge clk) begin
+  always @(posedge clk or posedge rst) begin
     if (rst || flush) begin
-      id_pc = 32'd0;
-      id_instr = {12'h0, 5'b0, 3'b000, 5'b0, 7'b0010011}; // addi x0, x0, 0 -> nop
+      id_pc <= 32'd0;
+      id_instr <= {12'h0, 5'b0, 3'b000, 5'b0, 7'b0010011}; // addi x0, x0, 0 -> nop
     end else if (pause) begin
-      // 空操作
-      // 阻止寄存器值改变
+      // 暂停时保持当前值不变
+      id_pc <= id_pc;
+      id_instr <= id_instr;
     end else begin
-      id_pc = if_pc;
-      id_instr = if_instr;
+      id_pc <= if_pc;
+      id_instr <= if_instr;
     end
   end
 

@@ -1,5 +1,5 @@
 module hazard_detection_unit(
-    input [2: 0] ex_readMem,
+    input ex_aluOut_WB_memOut,
     input [4: 0] ex_rd, id_rs1, id_rs2,
 
     output reg pause
@@ -7,7 +7,7 @@ module hazard_detection_unit(
 
 always @(*) begin
     pause = 1'b0;
-    if((ex_readMem != 3'b000) && ((ex_rd == id_rs1) || (ex_rd == id_rs2))) begin
+    if((ex_aluOut_WB_memOut == 1'b1) && ((ex_rd == id_rs1) || (ex_rd == id_rs2))) begin
         pause = 1'b1;
     end
 end

@@ -2,14 +2,14 @@
 
 module SCPU (
     input         clk,        // clock
-    input         rst,        // reset
+    input         rst,        // rst
     input         MIO_ready,
     input  [31:0] inst_in,    // instruction
     input  [31:0] Data_in,    // data from data memory
     output        mem_w,      // output: memory write signal
     output [31:0] PC_out,     // PC address
     // memory write
-    output [ 2:0] dm_ctrl,    // dm control signal
+    output [ 2:0] DMType,    // dm control signal
     output [31:0] Addr_out,   // ALU output
     output [31:0] Data_out,   // data to data memory
     output        CPU_MIO,
@@ -202,7 +202,7 @@ module SCPU (
 
   GRE_array #(200) IF_ID (
       .Clk(clk),
-      .Rst(reset),
+      .Rst(rst),
       .write_enable(IF_ID_write_enable),
       .flush(IF_ID_flush),
       .in(IF_ID_in),
@@ -211,7 +211,7 @@ module SCPU (
 
   GRE_array #(200) ID_EX (
       .Clk(clk),
-      .Rst(reset),
+      .Rst(rst),
       .write_enable(ID_EX_write_enable),
       .flush(ID_EX_flush),
       .in(ID_EX_in),
@@ -220,7 +220,7 @@ module SCPU (
 
   GRE_array #(200) EX_MEM (
       .Clk(clk),
-      .Rst(reset),
+      .Rst(rst),
       .write_enable(EX_MEM_write_enable),
       .flush(1'b0),
       .in(EX_MEM_in),
@@ -229,7 +229,7 @@ module SCPU (
 
   GRE_array #(200) MEM_WB (
       .Clk(clk),
-      .Rst(reset),
+      .Rst(rst),
       .write_enable(MEM_WB_write_enable),
       .flush(1'b0),
       .in(MEM_WB_in),
@@ -238,7 +238,7 @@ module SCPU (
 
   PC u_PC (
       .clk(clk),
-      .rst(reset),
+      .rst(rst),
       .NPC(NPC),
       .PC (PC_out)
   );
@@ -272,7 +272,7 @@ module SCPU (
 
   RF u_RF (
       .clk (clk),
-      .rst (reset),
+      .rst (rst),
       .RFWr(RegWrite_WB),
       .A1  (rs1),
       .A2  (rs2),

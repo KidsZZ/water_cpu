@@ -18,7 +18,9 @@ GTKWAVE = gtkwave
 
 # Directories
 SRC_DIR = .
-SRC_SUBDIR = src
+SRC_SUBDIR = src_ref
+# 支持通过 make run STOP_INSTR=10 方式传递 stop_instr 宏
+STOP_INSTR ?= 2000
 TEST_DIR = .
 BUILD_DIR = build
 RESULTS_DIR = results
@@ -36,8 +38,6 @@ RESULTS_FILE = $(RESULTS_DIR)/results.txt
 # Compiler flags
 IVERILOG_FLAGS = -g2012 -Wall -I./$(SRC_SUBDIR)
 
-# 支持通过 make run STOP_INSTR=10 方式传递 stop_instr 宏
-STOP_INSTR ?=
 VVP_FLAGS = 
 
 # Color codes for output

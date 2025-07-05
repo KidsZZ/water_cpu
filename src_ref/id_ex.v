@@ -6,8 +6,8 @@ module id_ex(
     input id_rs1Data_EX_PC,
     input [1: 0] id_rs2Data_EX_imm32_4,
     input id_writeReg,
-    input [1: 0] id_writeMem,
-    input [2: 0] id_readMem,
+    input [2: 0] id_DMType,
+    input id_mem_w,
     input [1: 0] id_pcImm_NEXTPC_rs1Imm,
     input [31: 0] id_pc,
     input [31: 0] id_rs1Data, id_rs2Data,
@@ -21,8 +21,8 @@ module id_ex(
     output reg ex_rs1Data_EX_PC,
     output reg [1: 0] ex_rs2Data_EX_imm32_4,
     output reg ex_writeReg,
-    output reg [1: 0] ex_writeMem,
-    output reg [2: 0] ex_readMem,
+    output reg [2: 0] ex_DMType,
+    output reg ex_mem_w,
     output reg [1: 0] ex_pcImm_NEXTPC_rs1Imm,
     output reg [31: 0] ex_pc,
     output reg [31: 0] ex_rs1Data, ex_rs2Data,
@@ -32,15 +32,15 @@ module id_ex(
     output reg [4: 0] ex_rs2
 );
 
-always @(posedge clk) begin
+always @(posedge clk or posedge rst) begin
     if(rst || pause || flush)begin
         ex_aluc = 5'b00000;
         ex_aluOut_WB_memOut = 1'b0;
         ex_rs1Data_EX_PC = 1'b0;
         ex_rs2Data_EX_imm32_4 = 2'b01;
-        ex_writeReg = 1'b1;
-        ex_writeMem = 2'b00;
-        ex_readMem = 3'b000;
+        ex_writeReg = 1'b0;
+        ex_DMType = 3'b000;
+        ex_mem_w = 1'b0;
         ex_pcImm_NEXTPC_rs1Imm = 2'b00;
         ex_pc = 32'h0;
         ex_rs1Data = 32'd0;
@@ -55,8 +55,8 @@ always @(posedge clk) begin
         ex_rs1Data_EX_PC <= id_rs1Data_EX_PC;
         ex_rs2Data_EX_imm32_4 <= id_rs2Data_EX_imm32_4;
         ex_writeReg <= id_writeReg;
-        ex_writeMem <= id_writeMem;
-        ex_readMem <= id_readMem;
+        ex_DMType <= id_DMType;
+        ex_mem_w <= id_mem_w;
         ex_pcImm_NEXTPC_rs1Imm <= id_pcImm_NEXTPC_rs1Imm;
         ex_pc <= id_pc;
         ex_rs1Data <= id_rs1Data;

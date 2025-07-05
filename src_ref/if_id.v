@@ -7,7 +7,7 @@ module if_id(
     output reg [31: 0] id_instr
 );
 
-always @(posedge clk) begin
+always @(posedge clk or posedge rst) begin
     if(rst || flush) begin
         id_pc = 32'd0;
         id_instr = {12'h0, 5'b0, 3'b000, 5'b0, 7'b0010011};

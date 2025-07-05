@@ -34,4 +34,4 @@ always @(*) begin
         end 
     endcase
 end
-endmodule;
+endmodule

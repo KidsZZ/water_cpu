@@ -16,4 +16,4 @@ assign  rd  = instr[11:7];
 assign  func3  = instr[14:12];
 assign  func7  = instr[31:25];
 
-endmodule;
+endmodule

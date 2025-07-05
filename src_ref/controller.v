@@ -1,3 +1,5 @@
+`include "ctrl_encode_def.v"
+
 module controller(
     input [6: 0] opcode,
     input [2: 0] func3,
@@ -7,8 +9,8 @@ module controller(
     output reg aluOut_WB_memOut, rs1Data_EX_PC, 
     output reg [1: 0] rs2Data_EX_imm32_4,
     output reg write_reg, 
-    output reg [1: 0] write_mem, 
-    output reg [2: 0] read_mem,
+    output reg [2: 0] DMType,
+    output reg mem_w,
     output reg [2: 0] extOP,
     output reg [1: 0] pcImm_NEXTPC_rs1Imm
 );
@@ -21,8 +23,8 @@ always @(*) begin
             aluOut_WB_memOut = 0;
             rs1Data_EX_PC = 0;
             rs2Data_EX_imm32_4 = 2'b01;
-            write_mem = 2'b00;
-            read_mem = 3'b000;
+            DMType = `dm_word;
+            mem_w = 0;
             aluc = 5'b00000;
             pcImm_NEXTPC_rs1Imm = 2'b00;
             extOP = 3'b001;
@@ -33,8 +35,8 @@ always @(*) begin
             aluOut_WB_memOut = 0;
             rs1Data_EX_PC = 1;
             rs2Data_EX_imm32_4 = 2'b01;
-            write_mem = 2'b00;
-            read_mem = 3'b000;
+            DMType = `dm_word;
+            mem_w = 0;
             aluc = 5'b00000;
             pcImm_NEXTPC_rs1Imm = 2'b00;
             extOP = 3'b001;
@@ -45,8 +47,8 @@ always @(*) begin
             aluOut_WB_memOut = 0;
             rs1Data_EX_PC = 1;
             rs2Data_EX_imm32_4 = 2'b11;
-            write_mem = 2'b00;
-            read_mem = 3'b000;
+            DMType = `dm_word;
+            mem_w = 0;
             aluc = 5'b00000;
             pcImm_NEXTPC_rs1Imm = 2'b01;
             extOP = 3'b100;
@@ -57,8 +59,8 @@ always @(*) begin
             aluOut_WB_memOut = 0;
             rs1Data_EX_PC = 1;
             rs2Data_EX_imm32_4 = 2'b11;
-            write_mem = 2'b00;
-            read_mem = 3'b000;
+            DMType = `dm_word;
+            mem_w = 0;
             aluc = 5'b01010;
             pcImm_NEXTPC_rs1Imm = 2'b10;
             extOP = 3'b000;
@@ -69,8 +71,8 @@ always @(*) begin
             aluOut_WB_memOut = 0;
             rs1Data_EX_PC = 0;
             rs2Data_EX_imm32_4 = 2'b00;
-            write_mem = 2'b00;
-            read_mem = 3'b000;
+            DMType = `dm_word;
+            mem_w = 0;
             pcImm_NEXTPC_rs1Imm = 2'b00;
             extOP = 3'b011;
             case (func3)
@@ -109,34 +111,33 @@ always @(*) begin
             aluOut_WB_memOut = 1;
             rs1Data_EX_PC = 0;
             rs2Data_EX_imm32_4 = 2'b01;
-            write_mem = 2'b00;
-            read_mem = 3'b000;
+            mem_w = 0;
             aluc = 5'b00000;
             pcImm_NEXTPC_rs1Imm = 2'b00;
             extOP = 3'b000;
             case (func3)
                 // lw
                 3'b010:begin
-                    read_mem = 3'b001;
+                    DMType = `dm_word;
                 end
                 // lh
                 3'b001:begin
-                    read_mem = 3'b110;
+                    DMType = `dm_halfword;
                 end
                 // lb
                 3'b000:begin
-                    read_mem = 3'b111;
+                    DMType = `dm_byte;
                 end
                 // lbu
                 3'b100:begin
-                    read_mem = 3'b011;
+                    DMType = `dm_byte_unsigned;
                 end
                 // lhu
                 3'b101:begin
-                    read_mem = 3'b010;
+                    DMType = `dm_halfword_unsigned;
                 end
                 default: begin
-                    
+                    DMType = `dm_word;
                 end
             endcase
         end
@@ -146,26 +147,25 @@ always @(*) begin
             aluOut_WB_memOut = 0;
             rs1Data_EX_PC = 0;
             rs2Data_EX_imm32_4 = 2'b01;
-            write_mem = 2'b00;
-            read_mem = 3'b000;
+            mem_w = 1;
             aluc = 5'b00000;
             pcImm_NEXTPC_rs1Imm = 2'b00;
             extOP = 3'b010;
             case (func3)
                 // sw
                 3'b010:begin
-                    write_mem = 2'b01;
+                    DMType = `dm_word;
                 end
                 // sh
                 3'b001:begin
-                    write_mem = 2'b10;
+                    DMType = `dm_halfword;
                 end
                 // sb
                 3'b000:begin
-                    write_mem = 2'b11;
+                    DMType = `dm_byte;
                 end
                 default: begin
-                    
+                    DMType = `dm_word;
                 end
             endcase
         end
@@ -175,8 +175,8 @@ always @(*) begin
             aluOut_WB_memOut = 0;
             rs1Data_EX_PC = 0;
             rs2Data_EX_imm32_4 = 2'b01;
-            write_mem = 2'b00;
-            read_mem = 3'b000;
+            DMType = `dm_word;
+            mem_w = 0;
             pcImm_NEXTPC_rs1Imm = 2'b00;
 
             extOP = 3'b000;
@@ -228,8 +228,8 @@ always @(*) begin
             aluOut_WB_memOut = 0;
             rs1Data_EX_PC = 0;
             rs2Data_EX_imm32_4 = 2'b00;
-            write_mem = 2'b00;
-            read_mem = 3'b000;
+            DMType = `dm_word;
+            mem_w = 0;
             pcImm_NEXTPC_rs1Imm = 2'b00;
             extOP = 3'b111;
             case (func3)
@@ -276,9 +276,17 @@ always @(*) begin
             endcase
         end
         default: begin
-            
+            write_reg = 0;
+            aluOut_WB_memOut = 0;
+            rs1Data_EX_PC = 0;
+            rs2Data_EX_imm32_4 = 2'b00;
+            DMType = `dm_word;
+            mem_w = 0;
+            aluc = 5'b00000;
+            pcImm_NEXTPC_rs1Imm = 2'b00;
+            extOP = 3'b000;
         end
     endcase
 end
 
-endmodule;
+endmodule

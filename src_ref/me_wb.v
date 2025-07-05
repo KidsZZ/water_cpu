@@ -13,10 +13,10 @@ module me_wb(
     output reg [4: 0] wb_rd
 );
 
-always @(posedge clk) begin
+always @(posedge clk or posedge rst) begin
     if(rst) begin
         wb_aluOut_WB_memOut = 1'b0;
-        wb_writeReg = 1'b1;
+        wb_writeReg = 1'b0;
         wb_outMem = 32'd0;
         wb_outAlu = 32'd0;
         wb_rd = 5'd0;

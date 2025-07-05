@@ -9,36 +9,38 @@ module sccomp (
   wire [31:0] PC;
   wire        MemWrite;
   wire [31:0] dm_addr, dm_din, dm_dout;
+  wire [2:0] dm_type;  // unused in this design
 
   wire rst = ~rstn;
 
   // instantiation of single-cycle CPU   
   SCPU U_SCPU (
       .clk     (clk),             // input:  cpu clock
-      .rst   (rst),             // input:  reset
+      .rst     (rst),             // input:  reset
       .inst_in (instr),           // input:  instruction
       .Data_in (dm_dout),         // input:  data to cpu  
       .mem_w   (MemWrite),        // output: memory write signal
       .PC_out  (PC),              // output: PC
       .Addr_out(dm_addr),         // output: address from cpu to memory
       .Data_out(dm_din),          // output: data from cpu to memory
-      .dm_ctrl (  /* unused */),  // output: dm control signal
+      .DMType  (dm_type),         // output: dm control signal
       .CPU_MIO (  /* unused */),  // output: CPU memory I/O control signal
-      .INT     (1'b0)            // input:  interrupt signal (not used)
+      .INT     (1'b0)             // input:  interrupt signal (not used)
   );
 
   // instantiation of data memory  
   dm U_DM (
-      .clk (clk),           // input:  cpu clock
-      .DMWr(MemWrite),      // input:  ram write
-      .addr(dm_addr[8:2]),  // input:  ram address
-      .din (dm_din),        // input:  data to ram
-      .dout(dm_dout)        // output: data from ram
+      .clk    (clk),       // input:  cpu clock
+      .DMWr   (MemWrite),  // input:  ram write
+      .addr   (dm_addr),   // input:  ram address
+      .din    (dm_din),    // input:  data to ram
+      .dout   (dm_dout),   // output: data from ram
+      .dm_ctrl(dm_type)    // input:  ram control signal
   );
 
   // instantiation of intruction memory (used for simulation)
   im U_IM (
-      .addr(PC[8:2]),  // input:  rom address
+      .addr(PC[31:2]),  // input:  rom address
       .dout(instr)     // output: instruction
   );
 

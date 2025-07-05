@@ -32,39 +32,39 @@ module reg_id_ex(
     output reg [4: 0] ex_rs2
 );
 
-always @(posedge clk) begin
+always @(posedge clk or posedge rst) begin
     if(rst || pause || flush)begin
-        ex_aluc = 5'b00000;
-        ex_aluOut_WB_memOut = 1'b0;
-        ex_rs1Data_EX_PC = 1'b0;
-        ex_rs2Data_EX_imm32_4 = 2'b00;
-        ex_writeReg = 1'b0;
-        ex_writeMem = 2'b00;
-        ex_readMem = 3'b000;
-        ex_pcImm_NEXTPC_rs1Imm = 2'b00;
-        ex_pc = 32'h0;
-        ex_rs1Data = 32'd0;
-        ex_rs2Data = 32'd0;
-        ex_imm32 = 32'd0;
-        ex_rd = 5'd0;
-        ex_rs1 = 5'd0;
-        ex_rs2 = 5'd0;
+        ex_aluc <= 5'b00000;
+        ex_aluOut_WB_memOut <= 1'b0;
+        ex_rs1Data_EX_PC <= 1'b0;
+        ex_rs2Data_EX_imm32_4 <= 2'b00;
+        ex_writeReg <= 1'b0;
+        ex_writeMem <= 2'b00;
+        ex_readMem <= 3'b000;
+        ex_pcImm_NEXTPC_rs1Imm <= 2'b00;
+        ex_pc <= 32'h0;
+        ex_rs1Data <= 32'd0;
+        ex_rs2Data <= 32'd0;
+        ex_imm32 <= 32'd0;
+        ex_rd <= 5'd0;
+        ex_rs1 <= 5'd0;
+        ex_rs2 <= 5'd0;
     end else begin
-        ex_aluc = id_aluc;
-        ex_aluOut_WB_memOut = id_aluOut_WB_memOut;
-        ex_rs1Data_EX_PC = id_rs1Data_EX_PC;
-        ex_rs2Data_EX_imm32_4 = id_rs2Data_EX_imm32_4;
-        ex_writeReg = id_writeReg;
-        ex_writeMem = id_writeMem;
-        ex_readMem = id_readMem;
-        ex_pcImm_NEXTPC_rs1Imm = id_pcImm_NEXTPC_rs1Imm;
-        ex_pc = id_pc;
-        ex_rs1Data = id_rs1Data;
-        ex_rs2Data = id_rs2Data;
-        ex_imm32 = id_imm32;
-        ex_rd = id_rd;
-        ex_rs1 = id_rs1;
-        ex_rs2 = id_rs2;
+        ex_aluc <= id_aluc;
+        ex_aluOut_WB_memOut <= id_aluOut_WB_memOut;
+        ex_rs1Data_EX_PC <= id_rs1Data_EX_PC;
+        ex_rs2Data_EX_imm32_4 <= id_rs2Data_EX_imm32_4;
+        ex_writeReg <= id_writeReg;
+        ex_writeMem <= id_writeMem;
+        ex_readMem <= id_readMem;
+        ex_pcImm_NEXTPC_rs1Imm <= id_pcImm_NEXTPC_rs1Imm;
+        ex_pc <= id_pc;
+        ex_rs1Data <= id_rs1Data;
+        ex_rs2Data <= id_rs2Data;
+        ex_imm32 <= id_imm32;
+        ex_rd <= id_rd;
+        ex_rs1 <= id_rs1;
+        ex_rs2 <= id_rs2;
     end
     
 end

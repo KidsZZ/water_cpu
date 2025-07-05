@@ -1,16 +1,16 @@
 module pc (
     input rst,
-    clk,
-    pause,
-    flush,
+    input clk,
+    input pause,
+    input flush,
     input [31:0] next_pc,
 
     output reg [31:0] pc
 );
 
-  always @(posedge clk) begin
+  always @(posedge clk or posedge rst) begin
     if (rst) begin
-      pc <= 32'h5c;
+      pc <= 32'h0;
     end else if (flush) begin
       pc <= next_pc;
     end else if (pause) begin
