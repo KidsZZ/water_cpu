@@ -1,24 +1,16 @@
-module pc (
-    input rst,
-    input clk,
-    input pause,
-    input flush,
-    input [31:0] next_pc,
+module PC( clk, rst, NPC, PC );
 
-    output reg [31:0] pc
-);
+  input              clk;
+  input              rst;
+  input       [31:0] NPC;
+  output reg  [31:0] PC;
 
-  always @(posedge clk or posedge rst) begin
-    if (rst) begin
-      pc <= 32'h0;
-    end else if (flush) begin
-      pc <= next_pc;
-    end else if (pause) begin
-      // 空操作
-      // 阻止寄存器值改变
-    end else begin
-      pc <= next_pc;
-    end
-  end
-
+  always @(posedge clk, posedge rst)
+    if (rst) 
+      PC <= 32'h0000_0000;
+//      PC <= 32'h0000_3000;
+    else
+      PC <= NPC;
+      
 endmodule
+

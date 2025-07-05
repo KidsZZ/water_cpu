@@ -18,7 +18,7 @@ GTKWAVE = gtkwave
 
 # Directories
 SRC_DIR = .
-SRC_SUBDIR = src_ref
+SRC_SUBDIR = src
 # 支持通过 make run STOP_INSTR=10 方式传递 stop_instr 宏
 STOP_INSTR ?= 2000
 TEST_DIR = .

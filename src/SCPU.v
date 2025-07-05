@@ -9,7 +9,7 @@ module SCPU (
     output        mem_w,      // output: memory write signal
     output [31:0] PC_out,     // PC address
     // memory write
-    output [ 2:0] DMType,    // dm control signal
+    output [ 2:0] DMType,     // dm control signal
     output [31:0] Addr_out,   // ALU output
     output [31:0] Data_out,   // data to data memory
     output        CPU_MIO,
@@ -187,7 +187,7 @@ module SCPU (
   assign aluout_WB = MEM_WB_out[36:5];
   assign rd_WB = MEM_WB_out[4:0];
   assign ID_EX_MemRead = WDSel_EX[0];
-  assign Branch_or_Jump = |NPCOp_EX;
+  assign Branch_or_Jump = (NPCOp_EX != 3'b000);
   assign ID_EX_flush = stall_signal | Branch_or_Jump;
   assign IF_ID_write_enable = ~stall_signal;
   assign RD1_forwarded = (ForwardA == 2'b00) ? RD1_EX :
