@@ -17,6 +17,7 @@ module NPC(PC,PC_EX, NPCOp, IMM, NPC,aluout,PCWrite);  // next pc module
    
    wire [31:0] PCPLUS4;
    
+   wire [31:0] stvec = 32'h00000090;
    assign PCPLUS4 = PC + 4; // pc + 4
    
    always @(*) begin
@@ -27,6 +28,7 @@ module NPC(PC,PC_EX, NPCOp, IMM, NPC,aluout,PCWrite);  // next pc module
               `NPC_BRANCH: NPC = PC_EX+IMM;
               `NPC_JUMP:   NPC = PC_EX+IMM;
               `NPC_JALR:	NPC =aluout;
+              `NPC_ECALL:  NPC = stvec; // ecall, set to zero or some specific address
               default:     NPC = PCPLUS4;
           endcase
       end

@@ -3,6 +3,7 @@
 `define NPC_BRANCH  3'b001
 `define NPC_JUMP    3'b010
 `define NPC_JALR 3'b100
+`define NPC_ECALL 3'b101
 
 // ALU control signal
 `define ALU_NOP   3'b000 

@@ -75,8 +75,6 @@ module ctrl(Op, Funct7, Funct3, Zero,
    wire i_blt  = sbtype& Funct3[2]& ~Funct3[1]&~Funct3[0];
    wire i_bltu  = sbtype& Funct3[2]& Funct3[1]&~Funct3[0];
    
-   wire i_auipc=~Op[6]&~Op[5]&Op[4]&~Op[3]&Op[2]&Op[1]&Op[0];
-   wire i_lui=~Op[6]&Op[5]&Op[4]&~Op[3]&Op[2]&Op[1]&Op[0];
 	
  // j format
    wire i_jal  = Op[6]& Op[5]&~Op[4]& Op[3]& Op[2]& Op[1]& Op[0];  // jal 1101111
@@ -84,14 +82,19 @@ module ctrl(Op, Funct7, Funct3, Zero,
  //jalr
 	wire i_jalr =Op[6]&Op[5]&~Op[4]&~Op[3]&Op[2]&Op[1]&Op[0]& ~Funct3[2]& ~Funct3[1]&~Funct3[0];//jalr 1100111
    
-// //U type
-//  wire u_auipc = ~Op[6] & ~Op[5] & Op[4] & ~Op[3] & Op[2] & Op[1] & Op[0];  //op=0010111
-//  wire u_lui = ~Op[6] & Op[5] & Op[4] & ~Op[3] & Op[2] & Op[1] & Op[0];  //op=0110111
+// U type
+   wire u_auipc=~Op[6]&~Op[5]&Op[4]&~Op[3]&Op[2]&Op[1]&Op[0];
+   wire u_lui=~Op[6]&Op[5]&Op[4]&~Op[3]&Op[2]&Op[1]&Op[0];
+
+// ecall
+    wire ecall = Op[6]&Op[5]&Op[4]&~Op[3]&~Op[2]&Op[1]&Op[0]; // 1110011
+
+
   // generate control signals
-  assign RegWrite = rtype | itype_r | itype_l | i_auipc | i_lui | i_jalr | i_jal;  // register write
+  assign RegWrite = rtype | itype_r | itype_l | u_auipc | u_lui | i_jalr | i_jal;  // register write
   assign MemWrite   = stype;                           // memory write
-//  assign ALUSrc     = itype_l |itype_r | stype | i_jal | i_jalr| i_auipc | i_lui ;   // ALU B is from instruction immediate
-  assign ALUSrc     = itype_l |itype_r | stype | i_jalr| i_auipc | i_lui ;   // ALU B is from instruction immediate
+//  assign ALUSrc     = itype_l |itype_r | stype | i_jal | i_jalr| u_auipc | u_lui ;   // ALU B is from instruction immediate
+  assign ALUSrc     = itype_l |itype_r | stype | i_jalr| u_auipc | u_lui ;   // ALU B is from instruction immediate
   // signed extension
   // EXT_CTRL_ITYPE_SHAMT 6'b100000
   // EXT_CTRL_ITYPE	      6'b010000
@@ -105,7 +108,7 @@ module ctrl(Op, Funct7, Funct3, Zero,
 //  assign EXTOp[4]    =  i_ori;  
   assign EXTOp[3]    = stype; 
   assign EXTOp[2]    = sbtype; 
-  assign EXTOp[1] = i_lui | i_auipc; 
+  assign EXTOp[1] = u_lui | u_auipc; 
   assign EXTOp[0]    = i_jal;         
 
 
@@ -122,20 +125,20 @@ module ctrl(Op, Funct7, Funct3, Zero,
   // NPC_JUMP    3'b010
   // NPC_JALR	3'b100
 //  assign NPCOp[0] = sbtype & Zero;  
-  assign NPCOp[0] = sbtype;
+  assign NPCOp[0] = sbtype | ecall;
   assign NPCOp[1] = i_jal;
-  assign NPCOp[2] = i_jalr;
+  assign NPCOp[2] = i_jalr | ecall;
   
 
 
-//assign ALUOp[0] = i_lui| i_bne |i_bge|i_bgeu|i_sltu|i_ori|i_or|i_slli|i_sll|i_srai|i_sra|i_add | i_addi | stype | itype_l;
-//assign ALUOp[1] = i_auipc|i_blt|i_bge|i_slti|i_slt|i_sltu|i_sltiu|i_andi|i_and|i_slli|i_sll|i_add | i_addi | stype | itype_l;
+//assign ALUOp[0] = u_lui| i_bne |i_bge|i_bgeu|i_sltu|i_ori|i_or|i_slli|i_sll|i_srai|i_sra|i_add | i_addi | stype | itype_l;
+//assign ALUOp[1] = u_auipc|i_blt|i_bge|i_slti|i_slt|i_sltu|i_sltiu|i_andi|i_and|i_slli|i_sll|i_add | i_addi | stype | itype_l;
 //assign ALUOp[2]=i_sub|i_beq| i_bne|i_blt|i_bge|i_xor|i_xori|i_ori|i_or|i_andi|i_and|i_slli|i_sll;
 //assign ALUOp[3]=i_bltu|i_bgeu|i_slti|i_slt|i_sltu|i_sltiu|i_xori|i_xor|i_ori|i_or|i_andi|i_and|i_slli|i_sll;
 //assign ALUOp[4] = i_srli | i_srl | i_srai | i_sra;
   
-assign ALUOp[0] = itype_l | stype | i_jalr | i_addi | i_add | i_or | i_ori | i_sltu | i_sltiu | i_sll | i_slli | i_sra | i_srai | i_lui |  i_bne | i_bge | i_bgeu ;
-assign ALUOp[1] = i_jalr | itype_l | stype |i_addi | i_add | i_sltu | i_sltiu | i_sll | i_slli | i_and | i_andi | i_slt | i_slti |i_bge | i_auipc | i_blt ;
+assign ALUOp[0] = itype_l | stype | i_jalr | i_addi | i_add | i_or | i_ori | i_sltu | i_sltiu | i_sll | i_slli | i_sra | i_srai | u_lui |  i_bne | i_bge | i_bgeu ;
+assign ALUOp[1] = i_jalr | itype_l | stype |i_addi | i_add | i_sltu | i_sltiu | i_sll | i_slli | i_and | i_andi | i_slt | i_slti |i_bge | u_auipc | i_blt ;
 assign ALUOp[2] = i_andi | i_and | i_ori | i_or | i_beq | i_sub |i_xor | i_xori | i_sll | i_slli |i_bne | i_blt | i_bge;
 assign ALUOp[3] = i_andi | i_and | i_ori | i_or | i_sll | i_slli | i_xor | i_xori | i_sltu | i_sltiu | i_slt | i_slti |i_bltu | i_bgeu;
 assign ALUOp[4] = i_srl | i_srli | i_sra | i_srai;
