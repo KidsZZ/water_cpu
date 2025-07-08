@@ -1,24 +1,25 @@
 // NPC control signal
-`define NPC_PLUS4   3'b000
-`define NPC_BRANCH  3'b001
-`define NPC_JUMP    3'b010
+`define NPC_PLUS4 3'b000
+`define NPC_BRANCH 3'b001
+`define NPC_JUMP 3'b010
 `define NPC_JALR 3'b100
-`define NPC_ECALL 3'b101
+`define NPC_INT 3'b101
+`define NPC_INT_RET 3'b110
 
 // ALU control signal
-`define ALU_NOP   3'b000 
-`define ALU_ADD   3'b001
-`define ALU_SUB   3'b010 
-`define ALU_AND   3'b011
-`define ALU_OR    3'b100
+`define ALU_NOP 3'b000 
+`define ALU_ADD 3'b001
+`define ALU_SUB 3'b010 
+`define ALU_AND 3'b011
+`define ALU_OR 3'b100
 
 //EXT CTRL itype, stype, btype, utype, jtype
 `define EXT_CTRL_ITYPE_SHAMT 6'b100000
-`define EXT_CTRL_ITYPE	6'b010000
-`define EXT_CTRL_STYPE	6'b001000
-`define EXT_CTRL_BTYPE	6'b000100
-`define EXT_CTRL_UTYPE	6'b000010
-`define EXT_CTRL_JTYPE	6'b000001
+`define EXT_CTRL_ITYPE 6'b010000
+`define EXT_CTRL_STYPE 6'b001000
+`define EXT_CTRL_BTYPE 6'b000100
+`define EXT_CTRL_UTYPE 6'b000010
+`define EXT_CTRL_JTYPE 6'b000001
 
 `define GPRSel_RD 2'b00
 `define GPRSel_RT 2'b01
@@ -53,3 +54,21 @@
 `define dm_byte 3'b011
 `define dm_byte_unsigned 3'b100
 
+`define scause_nop 8'b00000000
+`define scause_timer 8'b00000001
+`define scause_ecall 8'b00000100
+`define scause_illegal_instr 8'b00000010
+`define scause_reserve1 8'b00001000
+`define scause_reserve2 8'b00010000
+`define scause_reserve3 8'b00100000
+`define scause_reserve4 8'b01000000
+`define scause_reserve5 8'b10000000
+
+`define int_timer 3'b000 // Timer Interrupt
+`define int_illegal_instr 3'b001 // Illegal Instruction
+`define int_ecall 3'b010 // ECall
+`define int_reserve1 3'b011 // Reserved
+`define int_reserve2 3'b100 // Reserved
+`define int_reserve3 3'b101 // Reserved
+`define int_reserve4 3'b110 // Reserved
+`define int_reserve5 3'b111 // Reserved

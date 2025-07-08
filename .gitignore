@@ -2,3 +2,4 @@ build/
 results/
 asm&bin/
 dump.vcd
+code/

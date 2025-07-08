@@ -5,34 +5,69 @@
 //`define NPC_JUMP    3'b010
 //`define NPC_JALR 3'b100
 
-module NPC(PC,PC_EX, NPCOp, IMM, NPC,aluout,PCWrite);  // next pc module
-    
-   input  [31:0] PC;        // pc
-   input  [31:0] PC_EX;        // pc_EX
-   input  [2:0]  NPCOp;     // next pc operation
-   input  [31:0] IMM;       // immediate
-	input [31:0] aluout;
-	input PCWrite;
-   output reg [31:0] NPC;   // next pc
-   
-   wire [31:0] PCPLUS4;
-   
-   wire [31:0] stvec = 32'h00000090;
-   assign PCPLUS4 = PC + 4; // pc + 4
-   
-   always @(*) begin
-      if(PCWrite)
-      begin
-          case (NPCOp)
-              `NPC_PLUS4:  NPC = PCPLUS4;
-              `NPC_BRANCH: NPC = PC_EX+IMM;
-              `NPC_JUMP:   NPC = PC_EX+IMM;
-              `NPC_JALR:	NPC =aluout;
-              `NPC_ECALL:  NPC = stvec; // ecall, set to zero or some specific address
-              default:     NPC = PCPLUS4;
-          endcase
-      end
-      else NPC=PC;
-   end // end always
-   
+module NPC (
+    PC,
+    PC_EX,
+    NPCOp,
+    IMM,
+    NPC,
+    aluout,
+    PCWrite,
+    INT_Signal,
+    EXL_Set,
+    INT_PEND,
+    clk
+);  // next pc module
+
+  input [31:0] PC;  // pc
+  input [31:0] PC_EX;  // pc_EX
+  input [2:0] NPCOp;  // next pc operation
+  input [31:0] IMM;  // immediate
+  input [31:0] aluout;
+  input PCWrite;
+  input INT_Signal;  // interrupt signal
+  input EXL_Set;  // exception level set
+  input [2:0] INT_PEND;  // interrupt pending number (0-31)
+  input clk;
+  output reg [31:0] NPC;  // next pc
+
+  wire [31:0] PCPLUS4;
+  assign PCPLUS4 = PC + 4;  // pc + 4
+
+  reg [31:0] INT_VECTOR;
+
+  always @(*) begin
+    case (INT_PEND)
+      `int_timer: INT_VECTOR = 32'h00000000;  // Timer Interrupt
+      `int_illegal_instr: INT_VECTOR = 32'h00000a7c;  // 非法指令
+      `int_ecall: INT_VECTOR = 32'h00000a7c;  // 系统调用
+      default: INT_VECTOR = 32'h8000000;  // Default vector address
+    endcase
+  end
+
+  reg [31:0] SEPC;
+
+  always @(posedge clk) begin
+    if (PCWrite && NPCOp == `NPC_INT) begin
+      SEPC = PC_EX;
+    end
+  end
+
+
+  always @(*) begin
+    if (PCWrite) begin
+      case (NPCOp)
+        `NPC_PLUS4:  NPC = PCPLUS4;
+        `NPC_BRANCH: NPC = PC_EX + IMM;
+        `NPC_JUMP:   NPC = PC_EX + IMM;
+        `NPC_JALR:   NPC = aluout;
+        `NPC_INT:    NPC = INT_VECTOR;
+        `NPC_INT_RET: begin
+          NPC = SEPC + 4;
+        end
+        default:     NPC = PCPLUS4;
+      endcase
+    end else NPC = PC;
+  end  // end always
+
 endmodule

@@ -98,12 +98,20 @@ module SCPU (
   wire PCWrite;
   reg [31:0] RF_WD;
 
+  // exceptional
+  wire [7:0] STATUS = 8'b00000010;
+  wire [7:0] SCAUSE;
+  wire [7:0] INTMASK = 8'b11111111;  // @TODO: 之后引入多级中断后在修改
+  wire EXL_Set;
+  wire INT_Signal;
+  wire [2:0] INT_PEND;
+
 
   // Wire assignments
   assign ID_EX_write_enable = 1'b1;
   assign EX_MEM_write_enable = 1'b1;
   assign MEM_WB_write_enable = 1'b1;
-  
+
   // Instruction field assignments from IF_ID stage
   assign Op = IF_ID_inst[6:0];
   assign Funct3 = IF_ID_inst[14:12];
@@ -123,13 +131,13 @@ module SCPU (
   assign Data_out = RD2_MEM;
   assign mem_w = MemWrite_MEM;
   assign DMType = DMType_MEM;
-  
+
   // Control signal assignments
   assign ID_EX_MemRead = WDSel_EX[0];
   assign Branch_or_Jump = (NPCOp_EX != 3'b000);
   assign ID_EX_flush = stall_signal | Branch_or_Jump;
   assign IF_ID_write_enable = ~stall_signal;
-  
+
   // Forwarding assignments
   assign RD1_forwarded = (ForwardA == 2'b00) ? RD1_EX :
                          (ForwardA == 2'b01) ? RF_WD :
@@ -455,7 +463,8 @@ module SCPU (
       .ALUSrc(ALUSrc),
       .GPRSel(GPRSel),
       .WDSel(WDSel),
-      .DMType(DMType_ID)
+      .DMType(DMType_ID),
+      .SCAUSE(SCAUSE)
   );
 
   EXT u_EXT (
@@ -521,8 +530,21 @@ module SCPU (
       .NPCOp(NPCOp_EX),
       .IMM(immout_EX),
       .NPC(NPC),
+      .INT_Signal(INT_Signal),
+      .EXL_Set(EXL_Set),
+      .INT_PEND(INT_PEND),
       .PCWrite(PCWrite),
-      .aluout(aluout_EX)
+      .aluout(aluout_EX),
+      .clk(clk)
+  );
+
+  ExceptionCtrl u_Excep (
+      .STATUS(STATUS),
+      .SCAUSE(SCAUSE),
+      .INTMASK(INTMASK),
+      .EXL_Set(EXL_Set),
+      .INT_Signal(INT_Signal),
+      .INT_PEND(INT_PEND)
   );
 
 

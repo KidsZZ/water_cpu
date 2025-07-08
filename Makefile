@@ -166,6 +166,10 @@ $(VCD_FILE): simulate
 		echo "$(YELLOW)No waveform file generated during simulation$(NC)"; \
 	fi
 
+.PHONY: w
+w: $(VCD_FILE)
+	@echo "$(BLUE)Opening waveform viewer...$(NC)"
+
 # ============================================================================
 # Testing Targets
 # ============================================================================
