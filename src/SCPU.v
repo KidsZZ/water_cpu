@@ -89,7 +89,6 @@ module SCPU (
   wire [31:0] RD1;
   wire [31:0] RD2;
   wire stall_signal;
-  wire Branch_or_Jump;
   wire [1:0] ForwardA;
   wire [1:0] ForwardB;
   wire [31:0] RD1_forwarded;
@@ -102,9 +101,12 @@ module SCPU (
   wire [7:0] STATUS = 8'b00000010;
   wire [7:0] SCAUSE;
   wire [7:0] INTMASK = 8'b11111111;  // @TODO: 之后引入多级中断后在修改
-  wire EXL_Set;
-  wire INT_Signal;
-  wire [2:0] INT_PEND;
+  wire IF_ID_EXL_Set;
+  wire IF_ID_INT_Signal;
+  wire [2:0] IF_ID_INT_PEND;
+  wire ID_EX_EXL_Set;
+  wire ID_EX_INT_Signal;
+  wire [2:0] ID_EX_INT_PEND;
 
 
   // Wire assignments
@@ -134,8 +136,7 @@ module SCPU (
 
   // Control signal assignments
   assign ID_EX_MemRead = WDSel_EX[0];
-  assign Branch_or_Jump = (NPCOp_EX != 3'b000);
-  assign ID_EX_flush = stall_signal | Branch_or_Jump;
+  assign ID_EX_flush = stall_signal | IF_ID_flush;
   assign IF_ID_write_enable = ~stall_signal;
 
   // Forwarding assignments
@@ -304,6 +305,33 @@ module SCPU (
       .flush(ID_EX_flush),
       .in(IF_ID_PC),
       .out(PC_EX)
+  );
+
+  GRE_array #(1) ID_EX_EXL_Set_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(IF_ID_EXL_Set),
+      .out(ID_EX_EXL_Set)
+  );
+
+  GRE_array #(1) ID_EX_INT_Signal_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(IF_ID_INT_Signal),
+      .out(ID_EX_INT_Signal)
+  );
+
+  GRE_array #(3) ID_EX_INT_PEND_reg (
+      .Clk(clk),
+      .Rst(rst),
+      .write_enable(ID_EX_write_enable),
+      .flush(ID_EX_flush),
+      .in(IF_ID_INT_PEND),
+      .out(ID_EX_INT_PEND)
   );
 
   // EX_MEM Pipeline Registers using GRE_array
@@ -507,6 +535,7 @@ module SCPU (
       .ID_EX_rd(rd_EX),
       .ID_EX_MemRead(ID_EX_MemRead),
       .ID_EX_NPCOp(NPCOp_EX),
+      .ID_EX_INT_Signal(ID_EX_INT_Signal),
       .stall(stall_signal),
       .IF_ID_flush(IF_ID_flush),
       .PCWrite(PCWrite)
@@ -530,9 +559,9 @@ module SCPU (
       .NPCOp(NPCOp_EX),
       .IMM(immout_EX),
       .NPC(NPC),
-      .INT_Signal(INT_Signal),
-      .EXL_Set(EXL_Set),
-      .INT_PEND(INT_PEND),
+      .INT_Signal(ID_EX_INT_Signal),
+      .EXL_Set(ID_EX_EXL_Set),
+      .INT_PEND(ID_EX_INT_PEND),
       .PCWrite(PCWrite),
       .aluout(aluout_EX),
       .clk(clk)
@@ -542,9 +571,9 @@ module SCPU (
       .STATUS(STATUS),
       .SCAUSE(SCAUSE),
       .INTMASK(INTMASK),
-      .EXL_Set(EXL_Set),
-      .INT_Signal(INT_Signal),
-      .INT_PEND(INT_PEND)
+      .EXL_Set(IF_ID_EXL_Set),
+      .INT_Signal(IF_ID_INT_Signal),
+      .INT_PEND(IF_ID_INT_PEND)
   );
 
 

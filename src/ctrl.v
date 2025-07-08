@@ -142,9 +142,9 @@ module ctrl (
   // NPC_JUMP    3'b010
   // NPC_JALR	3'b100
   //  assign NPCOp[0] = sbtype & Zero;  
-  assign NPCOp[0] = sbtype | ecall;
+  assign NPCOp[0] = sbtype;
   assign NPCOp[1] = i_jal | mret;
-  assign NPCOp[2] = i_jalr | ecall | mret;
+  assign NPCOp[2] = i_jalr | mret;
 
 
 
@@ -166,7 +166,7 @@ module ctrl (
   assign DMType[1] = i_lb | i_sb | i_lhu;
   assign DMType[0] = i_lh | i_sh | i_lb | i_sb;
 
-  assign legal_instr = ~(rtype | itype_l | itype_r | stype | sbtype | i_jal | i_jalr | u_auipc | u_lui | ecall | nope);
+  assign legal_instr = rtype | itype_l | itype_r | stype | sbtype | i_jal | i_jalr | u_auipc | u_lui | ecall | nope | mret;
   assign illegal_instr = ~legal_instr;
 
   assign SCAUSE = ecall ? `scause_ecall :  // Software Interrupt

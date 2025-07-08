@@ -48,7 +48,7 @@ module NPC (
   reg [31:0] SEPC;
 
   always @(posedge clk) begin
-    if (PCWrite && NPCOp == `NPC_INT) begin
+    if (PCWrite && INT_Signal) begin
       SEPC = PC_EX;
     end
   end
@@ -56,17 +56,21 @@ module NPC (
 
   always @(*) begin
     if (PCWrite) begin
-      case (NPCOp)
-        `NPC_PLUS4:  NPC = PCPLUS4;
-        `NPC_BRANCH: NPC = PC_EX + IMM;
-        `NPC_JUMP:   NPC = PC_EX + IMM;
-        `NPC_JALR:   NPC = aluout;
-        `NPC_INT:    NPC = INT_VECTOR;
-        `NPC_INT_RET: begin
-          NPC = SEPC + 4;
-        end
-        default:     NPC = PCPLUS4;
-      endcase
+      if (INT_Signal) begin
+        // If an interrupt signal is received and EXL is not set, use the interrupt vector
+        NPC = INT_VECTOR;
+      end else begin
+        case (NPCOp)
+          `NPC_PLUS4:  NPC = PCPLUS4;
+          `NPC_BRANCH: NPC = PC_EX + IMM;
+          `NPC_JUMP:   NPC = PC_EX + IMM;
+          `NPC_JALR:   NPC = aluout;
+          `NPC_INT_RET: begin
+            NPC = SEPC + 4;
+          end
+          default:     NPC = PCPLUS4;
+        endcase
+      end
     end else NPC = PC;
   end  // end always
 
