@@ -107,6 +107,7 @@ module SCPU (
   wire ID_EX_EXL_Set;
   wire ID_EX_INT_Signal;
   wire [2:0] ID_EX_INT_PEND;
+  wire int_ret;
 
 
   // Wire assignments
@@ -492,7 +493,8 @@ module SCPU (
       .GPRSel(GPRSel),
       .WDSel(WDSel),
       .DMType(DMType_ID),
-      .SCAUSE(SCAUSE)
+      .SCAUSE(SCAUSE),
+      .int_ret(int_ret)
   );
 
   EXT u_EXT (
@@ -568,12 +570,16 @@ module SCPU (
   );
 
   ExceptionCtrl u_Excep (
+    .rst(rst),
+    .clk(clk),
       .STATUS(STATUS),
       .SCAUSE(SCAUSE),
       .INTMASK(INTMASK),
       .EXL_Set(IF_ID_EXL_Set),
       .INT_Signal(IF_ID_INT_Signal),
-      .INT_PEND(IF_ID_INT_PEND)
+      .INT_PEND(IF_ID_INT_PEND),
+      .Int(INT),
+      .int_ret(int_ret)
   );
 
 

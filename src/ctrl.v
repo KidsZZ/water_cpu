@@ -1,4 +1,4 @@
-// `include "ctrl_encode_def.v"
+`include "ctrl_encode_def.v"
 
 //123
 module ctrl (
@@ -15,7 +15,8 @@ module ctrl (
     GPRSel,
     WDSel,
     DMType,
-    SCAUSE
+    SCAUSE,
+    int_ret
 );
 
   input [6:0] Op;  // opcode
@@ -35,6 +36,7 @@ module ctrl (
   output [1:0] GPRSel;  // general purpose register selection
   output [1:0] WDSel;  // (register) write data selection
   output [2:0] DMType;
+  output int_ret;
 
   wire nope = ~Op[6] & ~Op[5] & ~Op[4] & ~Op[3] & ~Op[2] & ~Op[1] & ~Op[0];
 
@@ -103,8 +105,8 @@ module ctrl (
 
   // ecall
   wire ecall = Op[6] & Op[5] & Op[4] & ~Op[3] & ~Op[2] & Op[1] & Op[0] & ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & ~Funct7[3] & ~Funct7[2]& ~Funct7[1]& ~Funct7[0];  // ecall 1110011 fun7:0000000
-  // mret
-  wire mret = Op[6] & Op[5] & Op[4] & ~Op[3] & ~Op[2] & Op[1] & Op[0]& ~Funct7[6] & ~Funct7[5] & Funct7[4] & Funct7[3] & ~Funct7[2]& ~Funct7[1]& ~Funct7[0];  // 1110011 fun7:0011000
+  // sret
+  wire sret = Op[6] & Op[5] & Op[4] & ~Op[3] & ~Op[2] & Op[1] & Op[0]& ~Funct7[6] & ~Funct7[5] & ~Funct7[4] & Funct7[3] & ~Funct7[2]& ~Funct7[1]& ~Funct7[0];  // 1110011 fun7:0001000
 
 
   // generate control signals
@@ -143,8 +145,8 @@ module ctrl (
   // NPC_JALR	3'b100
   //  assign NPCOp[0] = sbtype & Zero;  
   assign NPCOp[0] = sbtype;
-  assign NPCOp[1] = i_jal | mret;
-  assign NPCOp[2] = i_jalr | mret;
+  assign NPCOp[1] = i_jal | sret;
+  assign NPCOp[2] = i_jalr | sret;
 
 
 
@@ -166,12 +168,14 @@ module ctrl (
   assign DMType[1] = i_lb | i_sb | i_lhu;
   assign DMType[0] = i_lh | i_sh | i_lb | i_sb;
 
-  assign legal_instr = rtype | itype_l | itype_r | stype | sbtype | i_jal | i_jalr | u_auipc | u_lui | ecall | nope | mret;
+  assign legal_instr = rtype | itype_l | itype_r | stype | sbtype | i_jal | i_jalr | u_auipc | u_lui | ecall | nope | sret;
   assign illegal_instr = ~legal_instr;
 
   assign SCAUSE = ecall ? `scause_ecall :  // Software Interrupt
       illegal_instr ? `scause_illegal_instr :  // Illegal Instruction
       `scause_nop;  // No Exception
+
+  assign int_ret = sret;
 
 endmodule
 

@@ -38,9 +38,9 @@ module NPC (
 
   always @(*) begin
     case (INT_PEND)
-      `int_timer: INT_VECTOR = 32'h00000000;  // Timer Interrupt
-      `int_illegal_instr: INT_VECTOR = 32'h00000a7c;  // 非法指令
-      `int_ecall: INT_VECTOR = 32'h00000a7c;  // 系统调用
+      `int_timer: INT_VECTOR = 32'h000000e8;// Timer Interrupt
+      `int_illegal_instr: INT_VECTOR = 32'h0000009c;  // 非法指令
+      `int_ecall: INT_VECTOR = 32'h00000050;  // 系统调用
       default: INT_VECTOR = 32'h8000000;  // Default vector address
     endcase
   end

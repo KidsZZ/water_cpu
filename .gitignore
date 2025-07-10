@@ -3,3 +3,4 @@ results/
 asm&bin/
 dump.vcd
 code/
+coe2bin/

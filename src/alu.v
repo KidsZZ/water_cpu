@@ -11,8 +11,9 @@ module alu(A, B, ALUOp, C, Zero,PC);
    reg [31:0] C;
    integer    i;
        
-   always @( * ) begin
-      case ( ALUOp )
+   // TODO: 可以使用wire实现, 加快运算速度
+   always @( * ) begin // 组合逻辑  
+      case ( ALUOp ) // ctrl模块给出, 决定当前执行哪种运算指令
     `ALUOp_nop:C=A;
     `ALUOp_lui:C=B;
     `ALUOp_auipc:C=PC+B;
@@ -34,7 +35,7 @@ module alu(A, B, ALUOp, C, Zero,PC);
       endcase
    end // end always
    
-   assign Zero = (C == 32'b0);
+   assign Zero = (C == 32'b0); // 用于条件跳转
 
 endmodule
     

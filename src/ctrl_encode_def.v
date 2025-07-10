@@ -56,8 +56,8 @@
 
 `define scause_nop 8'b00000000
 `define scause_timer 8'b00000001
-`define scause_ecall 8'b00000100
 `define scause_illegal_instr 8'b00000010
+`define scause_ecall 8'b00000100
 `define scause_reserve1 8'b00001000
 `define scause_reserve2 8'b00010000
 `define scause_reserve3 8'b00100000

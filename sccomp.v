@@ -1,9 +1,8 @@
 module sccomp (
-    clk,
-    rstn
+    input clk,
+    input rstn,
+    input Int
 );
-  input clk;
-  input rstn;
 
   wire [31:0] instr;
   wire [31:0] PC;
@@ -25,7 +24,7 @@ module sccomp (
       .Data_out(dm_din),          // output: data from cpu to memory
       .DMType  (dm_type),         // output: dm control signal
       .CPU_MIO (  /* unused */),  // output: CPU memory I/O control signal
-      .INT     (1'b0)             // input:  interrupt signal (not used)
+      .INT     (Int)             // input:  interrupt signal (not used)
   );
 
   // instantiation of data memory  

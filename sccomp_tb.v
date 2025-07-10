@@ -2,7 +2,7 @@
 // testbench for simulation
 module sccomp_tb ();
 
-  reg clk, rstn;
+  reg clk, rstn, Int;
   reg  [ 4:0] reg_sel;
   wire [31:0] reg_data;
 
@@ -16,7 +16,8 @@ module sccomp_tb ();
   // instantiation of sccomp    
   sccomp U_SCCOMP (
       .clk (clk),
-      .rstn(rstn)
+      .rstn(rstn),
+      .Int(Int)
   );
 
   integer foutput;
@@ -38,8 +39,10 @@ module sccomp_tb ();
     rstn = 0;
     #20;
     rstn = 1;
-    #1000;
-    reg_sel = 7;
+    #100;
+    Int = 1;
+    #100;
+    Int = 0;
   end
 
   always begin
