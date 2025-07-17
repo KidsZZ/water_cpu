@@ -11,19 +11,21 @@ module HazardDetectionUnit(
 );
 
     always @(*) begin
-        if (ID_EX_MemRead && 
-            ((ID_EX_rd != 5'b0) && 
+        if (ID_EX_MemRead && // load-use 冒险检测
+            ((ID_EX_rd != 5'b0) &&
             ((ID_EX_rd == IF_ID_rs1) || (ID_EX_rd == IF_ID_rs2)))) begin
-            stall = 1'b1;  
-            IF_ID_flush = 1'b0;
+            stall = 1'b1;  // 暂停信号线
+            IF_ID_flush = 1'b0; // flush信号线
             PCWrite = 1'b0; 
         end 
-        else if (ID_EX_NPCOp != 3'b000) begin
+        else if (ID_EX_NPCOp != 3'b000) begin // 分支指令冒险检测
+            // 只要发生跳转, NPCOp不为000, 就需要清除IF_ID寄存器
             stall = 1'b0;
             IF_ID_flush = 1'b1;
             PCWrite = 1'b1; 
         end
         else if (ID_EX_INT_Signal == 1'b1) begin
+            // 如果有中断信号, 需要清除IF_ID寄存器
             stall = 1'b0;
             IF_ID_flush = 1'b1;
             PCWrite = 1'b1; 

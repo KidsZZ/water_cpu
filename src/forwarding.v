@@ -10,10 +10,10 @@ module ForwardingUnit(
     output [1:0] ForwardA,
     output [1:0] ForwardB
 );
-wire MEM_Forward;
+wire MEM_Forward; // 访存前递
 assign MEM_Forward = (MEM_rd == EX_rs1) & MEM_RegWrite;
 
-wire WB_Forward;
+wire WB_Forward; // 写回前递, 优先级低于访存前递
 assign WB_Forward = (WB_rd == EX_rs1) & WB_RegWrite & ~MEM_Forward;
 
 assign ForwardA = {MEM_Forward, WB_Forward};

@@ -64,7 +64,7 @@
 `define scause_reserve4 8'b01000000
 `define scause_reserve5 8'b10000000
 
-`define int_timer 3'b000 // Timer Interrupt
+`define int_buttom 3'b000 // Timer Interrupt
 `define int_illegal_instr 3'b001 // Illegal Instruction
 `define int_ecall 3'b010 // ECall
 `define int_reserve1 3'b011 // Reserved

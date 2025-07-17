@@ -153,12 +153,12 @@ module SCPU (
 
   // IF_ID Pipeline Registers using GRE_array
   GRE_array #(32) IF_ID_PC_reg (
-      .Clk(clk),
-      .Rst(rst),
-      .write_enable(IF_ID_write_enable),
-      .flush(IF_ID_flush),
-      .in(PC_out),
-      .out(IF_ID_PC)
+      .Clk(clk), // 时钟线
+      .Rst(rst), // 复位线
+      .write_enable(IF_ID_write_enable), // 写使能(当前恒为1)
+      .flush(IF_ID_flush), // 清除信号
+      .in(PC_out), // 输入if PC
+      .out(IF_ID_PC) // 输出id PC
   );
 
   GRE_array #(32) IF_ID_inst_reg (
